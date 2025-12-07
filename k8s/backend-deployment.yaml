@@ -18,7 +18,8 @@ spec:
     spec:
       initContainers:
         - name: migrations
-          image: your-dockerhub-username/drfapp:latest
+          image: drfapp:latest
+          imagePullPolicy: Never
           command:
             - sh
             - -c
@@ -35,7 +36,8 @@ spec:
 
       containers:
         - name: backend
-          image: your-dockerhub-username/drfapp:latest
+          image: drfapp:latest
+          imagePullPolicy: Never
           command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
           ports:
             - containerPort: 8000

@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
         - name: celery-worker
-          image: your-dockerhub-username/drfapp:latest
+          image: drfapp:latest
+          imagePullPolicy: Never
           command: ["celery", "-A", "src", "worker", "--loglevel=info"]
           envFrom:
             - configMapRef:
