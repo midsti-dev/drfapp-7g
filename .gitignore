@@ -80,3 +80,6 @@ celerybeat.pid
 
 # Gunicorn
 gunicorn.pid
+
+
+k8s/secret.yaml
