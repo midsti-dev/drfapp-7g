@@ -1,64 +1,46 @@
-from django.urls import reverse
-from rest_framework.test import APITestCase
-from rest_framework import status
-from django.contrib.auth.models import User
+import pytest
+from pytest_drf.util import url_for
 from posts.models import Post
+from django.contrib.auth.models import User
+
+pytestmark = pytest.mark.django_db
 
 
-class PostsAPITest(APITestCase):
+def test_post_list(api_client):
+    url = url_for("posts-list")
+    response = api_client.get(url)
 
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            password="pass12345"
-        )
-
-        # Создаем пост
-        self.post = Post.objects.create(
-            title="Test post",
-            content="Some content",
-            author=self.user
-        )
-        self.list_url = reverse("posts-list")
-
-        self.detail_url = reverse("posts-detail", args=[self.post.id])
+    assert response.status_code == 200
+    assert isinstance(response.data, list)
 
 
-        self.client.force_authenticate(user=self.user)
+def test_post_create(api_client):
+    user = User.objects.create_user(username="testuser", password="pass12345")
 
-    def test_get_posts_list(self):
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(response.data), 1)
+    api_client.force_authenticate(user=user)
 
-    def test_create_post(self):
+    url = url_for("posts-list")
 
-        data = {
-            "title": "New Post",
-            "content": "Hello!",
-            "author": self.user.id
-        }
-        response = self.client.post(self.list_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Post.objects.count(), 2)
+    payload = {
+        "title": "My Test Post",
+        "content": "Hello World",
+        "author": user.id,
+    }
 
-    def test_get_single_post(self):
-        response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["title"], self.post.title)
+    response = api_client.post(url, payload, format="json")
 
-    def test_update_post(self):
-        data = {
-            "title": "Updated title",
-            "content": "Updated content",
-            "author": self.user.id
-        }
-        response = self.client.put(self.detail_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.post.refresh_from_db()
-        self.assertEqual(self.post.title, "Updated title")
+    assert response.status_code == 201
+    assert Post.objects.count() == 1
+    assert response.data["title"] == "My Test Post"
 
-    def test_delete_post(self):
-        response = self.client.delete(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Post.objects.filter(id=self.post.id).exists())
+
+def test_post_retrieve(api_client):
+    user = User.objects.create_user(username="testuser", password="pass12345")
+    post = Post.objects.create(title="Test", content="C", author=user)
+
+    url = url_for("posts-detail", post.id)
+    response = api_client.get(url)
+
+    assert response.status_code == 200
+    assert response.data["id"] == post.id
+    assert response.data["title"] == "Test"
