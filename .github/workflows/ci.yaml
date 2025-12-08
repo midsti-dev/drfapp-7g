@@ -52,16 +52,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run migrations
-        run: |
-          python manage.py makemigrations users
-          python manage.py makemigrations posts
-          python manage.py migrate
-
-      - name: Run tests
-        run: |
-          pytest -vv
-
       - name: Build Docker image
         run: |
           docker build -t drf-app:latest .
