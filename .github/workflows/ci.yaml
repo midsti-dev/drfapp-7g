@@ -54,6 +54,8 @@ jobs:
 
       - name: Run migrations
         run: |
+          python manage.py makemigrations users
+          python manage.py makemigrations posts
           python manage.py migrate
 
       - name: Run tests
